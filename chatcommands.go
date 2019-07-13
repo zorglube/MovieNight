@@ -205,6 +205,18 @@ var commands = &CommandControl{
 			HelpText: "Show a list of users in chat",
 			Function: func(cl *Client, args []string) (string, error) {
 				names := cl.belongsTo.GetNames()
+
+				var hasJojoa bool
+				for _, name := range names {
+					if name == "jojoa1997" {
+						hasJojoa = true
+					}
+				}
+				
+				if !hasJojoa {
+					names = append(names, "jojoaInSpirit")
+				}
+
 				return strings.Join(names, " "), nil
 			},
 		},
