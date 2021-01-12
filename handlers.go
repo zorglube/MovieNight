@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"path"
@@ -191,6 +190,14 @@ func checkRoomAccess(w http.ResponseWriter, r *http.Request) bool {
 				// Pin is incorrect.
 				handlePinTemplate(w, r, "Incorrect PIN")
 				return false
+			} else {
+				qpin := r.URL.Query().Get("pin")
+				if qpin != "" && qpin == settings.RoomAccessPin {
+					// Pin is correct.  Save it to session and return true.
+					session.Values["pin"] = settings.RoomAccessPin
+					session.Save(r, w)
+					return true
+				}
 			}
 			// nope.  display pin entry and return
 			handlePinTemplate(w, r, "")
@@ -290,27 +297,6 @@ func handleEmoteTemplate(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handlePin(w http.ResponseWriter, r *http.Request) {
-	session, err := sstore.Get(r, "moviesession")
-	if err != nil {
-		common.LogDebugf("Unable to get session: %v\n", err)
-	}
-
-	val := session.Values["pin"]
-	if val == nil {
-		session.Values["pin"] = "1234"
-		err := session.Save(r, w)
-		if err != nil {
-			fmt.Fprintf(w, "unable to save session: %v", err)
-		}
-		fmt.Fprint(w, "Pin was not set")
-		common.LogDebugln("pin was not set")
-	} else {
-		fmt.Fprintf(w, "pin set: %v", val)
-		common.LogDebugf("pin is set: %v\n", val)
-	}
-}
-
 func handleIndexTemplate(w http.ResponseWriter, r *http.Request) {
 	if settings.RoomAccess != AccessOpen {
 		if !checkRoomAccess(w, r) {
@@ -363,34 +349,39 @@ func handlePublish(conn *rtmp.Conn) {
 
 	if len(urlParts) > 2 {
 		common.LogErrorln("Extra garbage after stream key")
+		l.Unlock()
+		conn.Close()
 		return
 	}
 
 	if len(urlParts) != 2 {
 		common.LogErrorln("Missing stream key")
+		l.Unlock()
+		conn.Close()
 		return
 	}
 
 	if urlParts[1] != settings.GetStreamKey() {
 		common.LogErrorln("Stream key is incorrect.  Denying stream.")
+		l.Unlock()
+		conn.Close()
 		return //If key not match, deny stream
 	}
 
 	streamPath := urlParts[0]
-	ch := channels[streamPath]
-	if ch == nil {
-		ch = &Channel{}
-		ch.que = pubsub.NewQueue()
-		ch.que.WriteHeader(streams)
-		channels[streamPath] = ch
-	} else {
-		ch = nil
-	}
-	l.Unlock()
-	if ch == nil {
-		common.LogErrorln("Unable to start stream, channel is nil.")
+	ch, exists := channels[streamPath]
+	if exists {
+		common.LogErrorln("Stream already running.  Denying publish.")
+		conn.Close()
+		l.Unlock()
 		return
 	}
+
+	ch = &Channel{}
+	ch.que = pubsub.NewQueue()
+	ch.que.WriteHeader(streams)
+	channels[streamPath] = ch
+	l.Unlock()
 
 	stats.startStream()
 
