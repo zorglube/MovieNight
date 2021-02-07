@@ -39,4 +39,5 @@ test:
 # Do not put settings_example.json here as a prereq to avoid overwriting
 # the settings if the example is updated.
 settings.json: 
-	cp settings_example.json settings.json 
+	cp settings-default.json settings.json 
+#	cp settings-freebsd.json settings.json
