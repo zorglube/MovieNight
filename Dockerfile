@@ -29,7 +29,7 @@ COPY --from=build /app/settings_example.json /config/settings.json
 
 RUN chmod +x /app/docker/start.sh
 
-EXPOSE 8089
+EXPOSE 8080
 EXPOSE 1935
 
 CMD ["/app/docker/start.sh"]
