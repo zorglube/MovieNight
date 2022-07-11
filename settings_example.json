@@ -17,7 +17,6 @@
 	"RateLimitNick": 300,
 	"RegenAdminPass": true,
 	"RtmpListenAddress": ":4040",
-	"RoomAccessPin": true,
 	"StreamKey": "7bb2ca98-1425-4aa1-991c-3955e145f687",
 	"StreamStats": true,
 	"TitleLength": 50,
