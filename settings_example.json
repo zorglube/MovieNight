@@ -17,6 +17,7 @@
 	"RateLimitNick": 300,
 	"RegenAdminPass": true,
 	"RtmpListenAddress": ":4040",
+	"RoomAccess": "pin",
 	"RoomAccessPin": "9445",
 	"StreamKey": "7bb2ca98-1425-4aa1-991c-3955e145f687",
 	"StreamStats": true,
