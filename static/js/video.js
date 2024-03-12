@@ -11,7 +11,9 @@ function initPlayer() {
     let flvPlayer = flvjs.createPlayer({
         type: 'flv',
         url: '/live',
-        headers: {"content-lenght: 0"},
+        isLive: true,
+        hasAudio: true,
+        hasVideo: true
     });
     flvPlayer.attachMediaElement(videoElement);
     flvPlayer.load();
